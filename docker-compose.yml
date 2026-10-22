@@ -12,6 +12,8 @@ services:
     volumes:
       - sap_import_data:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      # historico do SharePoint pro dashboard de aging - roda depois do schema.sql (ordem alfabetica)
+      - ./db/migrations/0004_aging_historico_sharepoint.sql:/docker-entrypoint-initdb.d/zz_0004_aging_historico_sharepoint.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sap_import -d sap_import"]
       interval: 5s
