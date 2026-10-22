@@ -5,3 +5,7 @@ __pycache__/
 logs/
 backups/
 .pytest_cache/
+.claude/settings.local.json
+
+# Exports com dados comerciais (base historica do SharePoint) - nunca commitar
+data/

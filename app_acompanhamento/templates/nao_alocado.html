@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tempo não alocado — ApontaSAP</title>
+  <link rel="stylesheet" href="/static/css/style.css?v=6" />
+  <script>
+    (function(){
+      var s = localStorage.getItem("app_theme_mode")||"light";
+      var d = s==="dark"||(s==="system"&&window.matchMedia("(prefers-color-scheme:dark)").matches);
+      document.documentElement.setAttribute("data-theme", d?"dark":"light");
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- TOPBAR ─────────────────────────────────────────────── -->
+  <header class="topbar">
+
+    <div class="shell-top-row">
+      <div class="shell-top-main">
+        <div class="header-brand"><img class="logo-marca logo-escuro" src="/static/img/logo-greylogix-branco.png" alt="GreyLogix"><img class="logo-marca logo-claro" src="/static/img/logo-greylogix-preto.png" alt="GreyLogix"></div>
+        <nav class="top-nav">
+          <a href="/">Envio diário</a>
+          <a href="/nao-alocado" class="ativo">Tempo não alocado</a>
+        </nav>
+      </div>
+      <div class="shell-top-actions">
+        <button class="btn-theme-toggle" id="btnThemeToggle" title="Alternar tema claro/escuro">🌕</button>
+        <button class="btn ghost" id="btnLogout" title="Sair">Sair</button>
+      </div>
+    </div>
+
+    <!-- Linha 2: período / preview / enviar ───────────────── -->
+    <div class="filter-bar">
+      <label class="fb-check-inline">De
+        <input type="date" id="dataInicio" class="fb-input" style="width:145px">
+      </label>
+      <label class="fb-check-inline">até
+        <input type="date" id="dataFim" class="fb-input" style="width:145px">
+      </label>
+      <span class="fb-select" style="display:inline-flex;align-items:center;cursor:default;" id="idsapLabel">IdSAP: carregando...</span>
+
+      <button class="btn ghost" id="btnPreview">Calcular (preview)</button>
+      <button class="btn primary fb-apply" id="btnEnviar" disabled title="Envio bloqueado até definir o IdSAP">Enviar para o SAP</button>
+    </div>
+
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL ──────────────────────────────────── -->
+  <main class="main-content">
+
+    <div class="alert alert-warning hidden" id="avisoCarregando">Calculando a partir do Odoo (jornadas, feriados e horas apontadas) e do SAP (HANA) — só leitura...</div>
+    <div class="alert alert-error hidden" id="avisoErro"></div>
+
+    <section class="card">
+      <div class="section-title">Tempo não alocado</div>
+      <p style="font-size:.85rem;color:var(--mut);margin:0 0 12px;line-height:1.5;">
+        Para cada funcionário e dia útil do período: <strong>horas previstas na jornada</strong>
+        (Odoo, sem almoço, zero em feriado) menos <strong>horas apontadas</strong> no Odoo em qualquer
+        projeto (inclusive Time Off). A diferença é lançada no SAP no <strong>centro de custo</strong>
+        do funcionário — os 5 primeiros dígitos do campo <code>x_studio_related_project</code>
+        (ex.: <code>83.31 - Infrastructure</code> → <code>83.31</code>). Hoje e datas futuras
+        nunca entram. O que já foi lançado como não alocado no SAP é descontado, então reenviar
+        um período não duplica.
+      </p>
+      <div class="alert alert-warning hidden" id="avisoBloqueado">
+        Envio bloqueado: o IdSAP (ActivityType) do tempo não alocado ainda não foi definido.
+        O cálculo funciona normalmente; para liberar o envio, defina <code>NAO_ALOCADO_IDSAP</code>
+        e <code>NAO_ALOCADO_ENVIO_HABILITADO=true</code> no <code>.env</code>.
+      </div>
+
+      <div class="hidden" id="progressoWrap">
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+        <div class="log-box" id="logBox"></div>
+        <div class="alert alert-success hidden" id="resumoEnvio"></div>
+      </div>
+    </section>
+
+    <section class="kpi-row hidden" id="kpiRow"></section>
+
+    <section class="card hidden" id="previewSection">
+      <div class="section-title">
+        Preview (só leitura)
+        <input type="search" id="filtroTexto" class="fb-input" placeholder="Filtrar colaborador, centro de custo, status..." style="margin-left:auto;width:280px">
+      </div>
+      <div class="table-wrapper">
+        <table id="gridNaoAlocado">
+          <thead>
+            <tr>
+              <th>Colaborador</th><th>Data</th><th>Centro de custo</th>
+              <th class="col-valor">Previsto (h)</th><th class="col-valor">Apontado (h)</th>
+              <th class="col-valor">Já no SAP (h)</th><th class="col-valor">Não alocado (h)</th>
+              <th>Horário</th><th>Employee ID SAP</th><th>Status</th><th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody">
+            <tr><td colspan="11" class="empty-state">Escolha o período e clique em "Calcular (preview)".</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/nao_alocado.js?v=1"></script>
+</body>
+</html>

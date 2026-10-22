@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aging de Oportunidades — GreyLogix</title>
+  <link rel="stylesheet" href="/static/css/style.css?v=6" />
+  <script>
+    // Este dashboard abre no modo escuro por padrao (o usuario ainda pode trocar no botao)
+    (function(){
+      var s = null;
+      try { s = localStorage.getItem("aging_theme_mode"); } catch (e) {}
+      document.documentElement.setAttribute("data-theme", s === "light" ? "light" : "dark");
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- TOPBAR (sem menu: esta tela e publica e isolada das demais) -->
+  <header class="topbar">
+    <div class="shell-top-row">
+      <div class="shell-top-main">
+        <div class="header-brand"><img class="logo-marca logo-escuro" src="/static/img/logo-greylogix-branco.png" alt="GreyLogix"><img class="logo-marca logo-claro" src="/static/img/logo-greylogix-preto.png" alt="GreyLogix"><span>Aging de Oportunidades Comerciais</span></div>
+      </div>
+      <div class="shell-top-actions">
+        <span class="ag-atualizado" id="atualizado">Atualizando...</span>
+        <button class="btn-theme-toggle" id="btnThemeToggle" title="Alternar tema claro/escuro">🌙</button>
+      </div>
+    </div>
+
+    <div class="filter-bar ag-filtros">
+      <label class="fb-check-inline">Criada de <input type="date" id="fCriadaDe" class="fb-input"></label>
+      <label class="fb-check-inline">até <input type="date" id="fCriadaAte" class="fb-input"></label>
+      <select id="fVertical" class="fb-input" title="Vertical"><option value="">Todas as verticais</option></select>
+      <select id="fTipo" class="fb-input" title="Tipo de oferta"><option value="">Todos os tipos de oferta</option></select>
+      <select id="fResponsavel" class="fb-input" title="Responsável"><option value="">Todos os responsáveis</option></select>
+      <input type="text" id="fCliente" class="fb-input" list="listaClientes" placeholder="Cliente" style="width:180px">
+      <datalist id="listaClientes"></datalist>
+      <select id="fBase" class="fb-input" title="Base de origem"><option value="">Todas as bases</option></select>
+      <input type="search" id="fBusca" class="fb-input" placeholder="Buscar cliente, oportunidade ou código" style="width:240px">
+      <label class="fb-check-inline" title="Exclui criação em 16/12/2019 (carga inicial do SharePoint), aging negativo e arquivadas sem ganho/perda">
+        <input type="checkbox" id="fSoValidas" checked> Só linhas válidas para análise
+      </label>
+      <button class="btn ghost" id="btnLimpar">Limpar filtros</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="alert alert-error hidden" id="avisoErro"></div>
+    <div class="ag-frase" id="frase">Carregando indicadores...</div>
+
+    <nav class="ag-abas" id="abas">
+      <button class="ativa" data-aba="geral">Visão geral</button>
+      <button data-aba="winrate">Win rate</button>
+      <button data-aba="aging">Aging</button>
+      <button data-aba="pipeline">Pipeline e previsão</button>
+      <button data-aba="clientes">Clientes</button>
+      <button data-aba="ofertas">Ofertas</button>
+      <button data-aba="time">Time</button>
+      <button data-aba="base">Base de dados</button>
+    </nav>
+
+    <!-- VISAO GERAL -->
+    <section class="ag-aba" data-aba="geral">
+      <div class="ag-cards" id="cards"></div>
+      <div class="card">
+        <div class="ag-titulo">Destaques<small>Gerados a partir dos filtros aplicados. Win rate = ganhas ÷ (ganhas + perdidas).</small></div>
+        <ul class="ag-destaques" id="destaques"></ul>
+      </div>
+      <div class="ag-grid2">
+        <div class="card"><div class="ag-titulo">Oportunidades por ano de criação</div><div class="ag-chart"><canvas id="chAno"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Win rate por ano de criação<small>Em quantidade e em valor (R$). A distância entre as linhas mostra o quanto perdemos as maiores.</small></div><div class="ag-chart"><canvas id="chWinAno"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- WIN RATE -->
+    <section class="ag-aba hidden" data-aba="winrate">
+      <div class="ag-grid3">
+        <div class="card"><div class="ag-titulo">Win rate por faixa de ticket<small>Valor da oportunidade. Linha tracejada: win rate geral.</small></div><div class="ag-chart"><canvas id="chTicket"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Win rate por vertical<small>Clique numa vertical para filtrar o dashboard. Linha tracejada: win rate geral.</small></div><div class="ag-chart"><canvas id="chWinVertical"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Em que estágio as perdas acontecem<small>Perdas registradas no Odoo (inclusive as que vieram do SharePoint e fecharam em 2026), pelo estágio em que estavam ao serem perdidas.</small></div><div class="ag-chart"><canvas id="chEstagioPerda"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Por que perdemos, por vertical<small>Motivo da perda em % das perdidas de cada vertical (10+ perdas).</small></div><div class="ag-chart"><canvas id="chMotivoVertical"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Por que perdemos, por ano<small>Motivo da perda em % das perdidas de cada ano de criação.</small></div><div class="ag-chart"><canvas id="chMotivoAno"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Sazonalidade das vitórias<small id="subSazonalidade">Ganhas por mês da data de ganho, somando os anos do filtro.</small></div><div class="ag-chart"><canvas id="chSazonalidade"></canvas></div></div>
+      </div>
+      <div class="card"><div class="ag-titulo">Win rate por vertical</div><div class="table-wrapper"><table id="tbWinVertical"></table></div></div>
+    </section>
+
+    <!-- AGING -->
+    <section class="ag-aba hidden" data-aba="aging">
+      <div class="card"><div class="ag-titulo">Chance de ganho de quem ainda está aberta<small id="subChance">Entre as oportunidades que chegaram vivas ao dia X, quantas foram ganhas. Mostra a partir de quando insistir deixa de valer a pena. Linha tracejada: win rate geral.</small></div><div class="ag-chart ag-chart-baixo"><canvas id="chChance"></canvas></div></div>
+      <div class="card"><div class="ag-titulo">Conversão por safra<small>% das oportunidades criadas em cada ano que já estavam ganhas X dias depois da criação. Safras recentes só aparecem até onde já tiveram tempo de amadurecer.</small></div><div class="ag-chart ag-chart-baixo"><canvas id="chSafra"></canvas></div></div>
+      <div class="ag-grid4">
+        <div class="card"><div class="ag-titulo">Distribuição do aging<small>% das ganhas e % das perdidas em cada faixa de dias até o fechamento.</small></div><div class="ag-chart"><canvas id="chFaixa"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Quando as decisões acontecem<small id="subDecisoes">% acumulado das ganhas e das perdidas já encerradas até cada dia.</small></div><div class="ag-chart"><canvas id="chDecisoes"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Aging mediano por ano de criação<small>Mediana de dias até o fechamento. Anos recentes ainda têm oportunidades abertas, o que puxa a mediana para baixo.</small></div><div class="ag-chart"><canvas id="chAgingAno"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">SharePoint × Odoo<small>Ciclo e win rate pela base de origem. O Odoo concentra 2026, então parte da diferença é safra incompleta.</small></div><div class="table-wrapper"><table id="tbBases"></table></div></div>
+      </div>
+      <div class="card"><div class="ag-titulo">Aging por status (dias)</div><div class="table-wrapper"><table id="tbAgingStatus"></table></div></div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section class="ag-aba hidden" data-aba="pipeline">
+      <div class="ag-cards" id="cardsPipeline"></div>
+      <div class="card"><div class="ag-titulo">Previsão de vitórias por mês<small>Valor esperado de ganhos do pipeline aberto, mês a mês. Para cada oportunidade aberta há X dias, olhamos as fechadas que passaram de X dias: a fração ganha dá a chance, e quando elas foram ganhas dá o mês provável. Estimativa a partir do histórico do filtro.</small></div><div class="ag-chart"><canvas id="chPrevisao"></canvas></div></div>
+      <div class="ag-grid3">
+        <div class="card"><div class="ag-titulo">Há quanto tempo estão abertas<small>Quantidade por faixa de dias em aberto. Em destaque, mais de 1 ano.</small></div><div class="ag-chart"><canvas id="chIdade"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Abertas por estágio<small>Quantidade; passe o mouse para ver o valor e a idade mediana.</small></div><div class="ag-chart"><canvas id="chEstagioAberta"></canvas></div></div>
+        <div class="card"><div class="ag-titulo">Pipeline por vertical</div><div class="table-wrapper"><table id="tbPipelineVertical"></table></div></div>
+      </div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section class="ag-aba hidden" data-aba="clientes">
+      <div class="ag-grid2">
+        <div class="card"><div class="ag-titulo">Cliente novo × recorrente<small>Recorrente = o cliente já tinha uma vitória registrada antes da oportunidade ser criada. A base começa em 2019, então os primeiros anos têm mais "novos" do que de fato eram.</small></div><div class="table-wrapper"><table id="tbNovoRecorrente"></table></div></div>
+        <div class="card"><div class="ag-titulo">Win rate por ano: novo × recorrente<small>Win rate de cada grupo por ano de criação (10+ fechadas). Linha tracejada: % das fechadas vindas de clientes novos.</small></div><div class="ag-chart"><canvas id="chNovoRecorrente"></canvas></div></div>
+      </div>
+      <div class="card"><div class="ag-titulo">Concentração do valor ganho<small id="subConcentracao">Os 15 maiores clientes por valor ganho. Clique para filtrar.</small></div><div class="ag-chart ag-chart-alto"><canvas id="chConcentracao"></canvas></div></div>
+      <div class="card"><div class="ag-titulo">Top 20 clientes por valor ganho</div><div class="table-wrapper"><table id="tbClientes"></table></div></div>
+    </section>
+
+    <!-- OFERTAS -->
+    <section class="ag-aba hidden" data-aba="ofertas">
+      <p class="ag-nota">O tipo de oferta foi classificado por palavras-chave no título da oportunidade (ex.: "aditivo", "suporte", "retrofit", "painel", "licença"). É uma aproximação: títulos sem pista ficam em "Outros". Clique num tipo para filtrar o dashboard.</p>
+      <div class="card"><div class="ag-titulo">Onde o esforço comercial rende mais<small>Cada bolha é um tipo de oferta (20+ fechadas): win rate × ciclo mediano das ganhas; o tamanho é o valor ganho. Canto superior esquerdo = ganha muito e rápido.</small></div><div class="ag-chart"><canvas id="chOfertasBolhas"></canvas></div></div>
+      <div class="card"><div class="ag-titulo">Indicadores por tipo de oferta<small>Clique na linha para filtrar.</small></div><div class="table-wrapper"><table id="tbOfertas"></table></div></div>
+      <div class="card"><div class="ag-titulo">Mix de ofertas por ano<small>% das oportunidades criadas em cada ano, pelos 7 tipos mais frequentes no filtro.</small></div><div class="ag-chart"><canvas id="chMix"></canvas></div></div>
+    </section>
+
+    <!-- TIME -->
+    <section class="ag-aba hidden" data-aba="time">
+      <div class="card"><div class="ag-titulo">Volume × conversão<small id="subVolume">Cada bolha é um responsável com 20+ oportunidades fechadas: volume de fechadas × win rate; o tamanho é o valor ganho. Clique para filtrar.</small></div><div class="ag-chart"><canvas id="chTimeBolhas"></canvas></div></div>
+      <div class="card"><div class="ag-titulo">Evolução comercial por vendedor, trimestre a trimestre<small>Win rate de cada vendedor (20+ fechadas no filtro) nas oportunidades fechadas em cada trimestre. Azul acima e laranja abaixo do win rate geral; quanto mais forte, maior a distância. Cinza: menos de 3 fechadas no trimestre (mostra ganhas/fechadas). Clique no nome para filtrar.</small></div><div class="table-wrapper"><table class="ag-mapa" id="tbMapa"></table></div></div>
+      <div class="card"><div class="ag-titulo">Higiene do pipeline por responsável<small>Oportunidades abertas por idade, para os 15 responsáveis com mais abertas.</small></div><div class="ag-chart ag-chart-alto"><canvas id="chHigiene"></canvas></div></div>
+      <div class="card"><div class="ag-titulo">Desempenho por responsável</div><div class="table-wrapper"><table id="tbTime"></table></div></div>
+    </section>
+
+    <!-- BASE DE DADOS -->
+    <section class="ag-aba hidden" data-aba="base">
+      <div class="card">
+        <div class="ag-titulo ag-titulo-acoes">
+          <span id="baseTotal">Base completa de oportunidades</span>
+          <select id="fStatus" class="fb-input"><option value="">Todos os status</option><option value="ganha">Ganha</option><option value="perdida">Perdida</option><option value="aberta">Aberta</option><option value="arquivada">Arquivada</option></select>
+          <select id="fFaixa" class="fb-input"><option value="">Todas as faixas de aging</option></select>
+          <button class="btn ghost" id="btnCsv" style="margin-left:auto">⬇ Exportar CSV</button>
+        </div>
+        <div class="table-wrapper ag-tabela-base"><table id="tbBaseDados"></table></div>
+        <div class="ag-paginacao">
+          <button class="btn ghost" id="btnPagAnt">‹ Anterior</button>
+          <span id="pagInfo"></span>
+          <button class="btn ghost" id="btnPagProx">Próxima ›</button>
+        </div>
+      </div>
+      <div class="card"><div class="ag-titulo">Qualidade dos dados<small>Pontos que afetam a leitura dos números (base completa, sem filtros).</small></div><ul class="ag-destaques ag-qualidade" id="qualidade"></ul></div>
+    </section>
+  </main>
+
+  <script src="/static/vendor/chartjs/chart.umd.min.js"></script>
+  <script src="/static/js/aging.js?v=6"></script>
+</body>
+</html>

@@ -82,6 +82,67 @@ class OdooClient:
     def buscar_usuarios(self) -> list[dict]:
         return self.search_read("res.users", [], ["login", "id", "name"])
 
+    def _search_read_paginado(self, model: str, domain: list, fields: list[str], pagina: int = 5000) -> list[dict]:
+        """search_read em paginas (offset) - pra consultas que podem passar do limit default
+        de search_read (ex: todas as horas apontadas de todos os funcionarios num mes)."""
+        uid = self._autenticar()
+        resultado, offset = [], 0
+        while True:
+            rows = com_retry(
+                self._object.execute_kw, self.db, uid, self.api_key, model, "search_read",
+                [domain], {"fields": fields, "limit": pagina, "offset": offset, "order": "id"},
+                excecoes=_ERROS_TRANSITORIOS,
+            )
+            resultado.extend(rows)
+            if len(rows) < pagina:
+                return resultado
+            offset += pagina
+
+    def buscar_funcionarios_ativos(self) -> list[dict]:
+        """Funcionarios ativos com o que o modulo de tempo nao alocado precisa: centro de custo
+        (x_studio_related_project, projeto do Odoo cujo nome comeca com 'NN.NN'), jornada de
+        trabalho e datas de entrada/saida."""
+        return self.search_read(
+            "hr.employee", [["active", "=", True]],
+            ["name", "x_studio_related_project", "resource_calendar_id", "work_email", "user_id",
+             "contract_date_start", "departure_date"],
+        )
+
+    def buscar_jornadas(self, calendar_ids: list[int]) -> tuple[dict[int, dict], list[dict]]:
+        """Jornadas de trabalho (resource.calendar) e seus horarios (resource.calendar.attendance).
+        Retorna ({calendar_id: calendario}, [attendances])."""
+        calendar_ids = [c for c in set(calendar_ids) if c]
+        if not calendar_ids:
+            return {}, []
+        calendarios = self.search_read("resource.calendar", [["id", "in", calendar_ids]],
+                                        ["name", "two_weeks_calendar", "tz"])
+        attendances = self.search_read(
+            "resource.calendar.attendance", [["calendar_id", "in", calendar_ids]],
+            ["calendar_id", "dayofweek", "hour_from", "hour_to", "day_period", "week_type", "display_type"],
+        )
+        return {c["id"]: c for c in calendarios}, attendances
+
+    def buscar_feriados(self, data_inicio: str, data_fim: str) -> list[dict]:
+        """Ausencias globais da empresa (feriados) - resource.calendar.leaves sem resource_id
+        (as de um funcionario especifico entram como apontamento de Time Off no timesheet)."""
+        return self.search_read(
+            "resource.calendar.leaves",
+            [["resource_id", "=", False], ["date_from", "<=", f"{data_fim} 23:59:59"],
+             ["date_to", ">=", f"{data_inicio} 00:00:00"]],
+            ["name", "date_from", "date_to", "calendar_id"],
+        )
+
+    def buscar_horas_apontadas_periodo(self, data_inicio: str, data_fim: str) -> list[dict]:
+        """Todas as horas apontadas no timesheet no periodo, de qualquer projeto e qualquer
+        status (validado ou nao, inclusive Time Off) - e o que conta como tempo ALOCADO pro
+        modulo de tempo nao alocado."""
+        return self._search_read_paginado(
+            "account.analytic.line",
+            [["date", ">=", data_inicio], ["date", "<=", data_fim], ["project_id", "!=", False],
+             ["employee_id", "!=", False]],
+            ["employee_id", "date", "unit_amount"],
+        )
+
     def buscar_id_sap_tarefas(self, task_ids: list[int]) -> dict[int, str | None]:
         """Pra cada task_id, le o x_studio_id_sap preenchido na propria tarefa (modulo de
         Projetos do Odoo) - o ActivityType enviado ao SAP e sempre o da tarefa vinculada ao

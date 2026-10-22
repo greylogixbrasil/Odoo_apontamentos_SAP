@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ApontaSAP — GreyLogix</title>
-  <link rel="stylesheet" href="/static/css/style.css?v=1" />
+  <link rel="stylesheet" href="/static/css/style.css?v=6" />
   <script>
     (function(){
       var s = localStorage.getItem("app_theme_mode")||"light";
@@ -20,7 +20,11 @@
 
     <div class="shell-top-row">
       <div class="shell-top-main">
-        <div class="header-brand">GreyLogix</div>
+        <div class="header-brand"><img class="logo-marca logo-escuro" src="/static/img/logo-greylogix-branco.png" alt="GreyLogix"><img class="logo-marca logo-claro" src="/static/img/logo-greylogix-preto.png" alt="GreyLogix"></div>
+        <nav class="top-nav">
+          <a href="/" class="ativo">Envio diário</a>
+          <a href="/nao-alocado">Tempo não alocado</a>
+        </nav>
       </div>
       <div class="shell-top-actions">
         <button class="btn-theme-toggle" id="btnThemeToggle" title="Alternar tema claro/escuro">🌕</button>
