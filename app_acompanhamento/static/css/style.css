@@ -865,3 +865,14 @@ td.td-expandivel {
 .logo-claro { display: none; }
 [data-theme="light"] .logo-escuro { display: none; }
 [data-theme="light"] .logo-claro { display: block; }
+
+/* Listas nativas (<select>, calendario do <input type="date">) sao desenhadas pelo sistema com fundo
+   branco e herdavam o texto claro do tema escuro - opcoes ficavam invisiveis (branco no branco).
+   color-scheme faz o navegador desenhar esses controles no tema certo; as cores das <option> garantem
+   o contraste nos navegadores que ignoram color-scheme. */
+:root, [data-theme="light"] { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+.fb-select option, .fb-input option, select option { background: #FFFFFF; color: #1E2428; }
+[data-theme="dark"] .fb-select option, [data-theme="dark"] .fb-input option, [data-theme="dark"] select option {
+  background: #1B1D21; color: #E8EDF4;
+}
