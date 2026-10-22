@@ -7,3 +7,8 @@ PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
 # script e que decide se faz algo de verdade. ".env.runtime" (gerado por entrypoint.sh no
 # start do container) traz as variaveis de ambiente que o cron nao herda sozinho.
 0 2 * * * root source /app/.env.runtime && cd /app && python scripts/run_import_odoo_automatico.py --env prod --send --confirm-prod >> /app/logs/cron_envio.log 2>&1
+
+# Dashboard de aging (tela /aging): sincroniza o CRM do Odoo de hora em hora (incremental) e 1x por
+# dia completo (detecta oportunidades excluidas). Lock no Postgres impede duas syncs ao mesmo tempo.
+5 * * * * root source /app/.env.runtime && cd /app && python scripts/sync_aging.py >> /app/logs/cron_aging.log 2>&1
+30 3 * * * root source /app/.env.runtime && cd /app && python scripts/sync_aging.py --completa >> /app/logs/cron_aging.log 2>&1

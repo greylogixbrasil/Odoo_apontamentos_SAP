@@ -772,3 +772,96 @@ td.td-expandivel {
 }
 .btn-copy:hover  { opacity: 1; border-color: var(--primary); }
 .btn-copy.copied { opacity: 1; color: var(--green); border-color: var(--green); }
+
+/* ── Navegação entre telas (Envio diário / Tempo não alocado) ─── */
+.top-nav { display: flex; gap: 4px; margin-left: 18px; }
+.top-nav a {
+  font-size: .8rem; color: var(--mut); text-decoration: none;
+  padding: 6px 12px; border-radius: var(--btn-radius);
+}
+.top-nav a:hover { background: var(--primary-soft); color: var(--ink); }
+.top-nav a.ativo { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+
+/* ── Tempo não alocado ───────────────────────────────────────── */
+.status-aguardando_idsap { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+[data-theme="dark"] .status-aguardando_idsap { background: rgba(230,81,0,.15); color: #FFB74D; border-color: rgba(230,81,0,.28); }
+.kpi .sub { font-size: .72rem; color: var(--mut); margin-top: 2px; }
+
+/* ── Dashboard de aging (/aging) ─────────────────────────────── */
+.ag-atualizado { font-size: .75rem; color: var(--mut); margin-right: 8px; white-space: nowrap; }
+.ag-atualizado.ag-atrasado { color: var(--amber); font-weight: 600; }
+.ag-filtros { flex-wrap: wrap; row-gap: 8px; }
+.ag-frase {
+  padding: 12px 16px; border-radius: var(--radius-card);
+  background: var(--primary-soft); color: var(--ink); font-size: .9rem; line-height: 1.5;
+  border-left: 4px solid var(--primary);
+}
+.ag-abas { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.ag-abas button {
+  background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 14px;
+  font-size: .85rem; color: var(--mut); cursor: pointer; font-family: inherit;
+}
+.ag-abas button:hover { color: var(--ink); }
+.ag-abas button.ativa { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.ag-aba { display: flex; flex-direction: column; gap: 14px; }
+.ag-aba.hidden { display: none; }
+
+/* cards lado a lado, ocupando a linha (a .kpi base limita a 260px - aqui nao) */
+.ag-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.ag-cards .kpi { max-width: none; min-width: 0; }
+.kpi .sub { font-size: .72rem; color: var(--mut); margin-top: 4px; }
+
+.ag-titulo { font-family: var(--disp); font-size: .9rem; font-weight: 800; color: var(--ink); display: flex; flex-direction: column; gap: 3px; }
+.ag-titulo small { font-family: var(--body); font-size: .72rem; font-weight: 400; color: var(--mut); line-height: 1.4; }
+.ag-titulo-acoes { flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ag-nota { margin: 0; font-size: .78rem; color: var(--mut); line-height: 1.5; max-width: 900px; }
+
+.ag-destaques { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; font-size: .88rem; line-height: 1.45; color: var(--ink); }
+.ag-destaques li::marker { color: var(--primary); }
+.ag-qualidade { font-size: .8rem; color: var(--mut); }
+
+.ag-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
+.ag-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+.ag-grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.ag-chart { position: relative; height: 280px; }
+.ag-chart-baixo { height: 240px; }
+.ag-chart-alto { height: 420px; }
+
+.ag-clicavel { cursor: pointer; }
+.ag-clicavel:hover td { background: var(--primary-soft); }
+.ag-barrinha { display: inline-block; width: 46px; height: 6px; margin-right: 8px; border-radius: 3px; vertical-align: middle;
+  background: linear-gradient(90deg, #3B82F6 var(--w), rgba(127,127,127,.18) var(--w)); }
+
+/* mapa de calor vendedor x trimestre */
+.ag-mapa { border-collapse: separate; border-spacing: 2px; font-size: .7rem; }
+.ag-mapa th { font-weight: 600; color: var(--mut); white-space: nowrap; padding: 2px 4px; }
+.ag-mapa td { text-align: center; padding: 3px 5px; border-radius: 3px; color: #fff; min-width: 38px; white-space: nowrap; }
+.ag-mapa td.ag-mapa-nome { text-align: right; color: var(--ink); font-weight: 600; cursor: pointer; min-width: 0; }
+.ag-mapa td.ag-mapa-nome:hover { color: var(--primary); }
+.ag-mapa td.ag-mapa-poucas { background: rgba(127,127,127,.18); color: var(--mut); }
+.ag-mapa td.col-valor { color: var(--ink); font-weight: 600; }
+
+.ag-tabela-base { max-height: 560px; }
+.ag-paginacao { display: flex; gap: 12px; align-items: center; justify-content: flex-end; font-size: .8rem; color: var(--mut); }
+.ag-ordenavel { cursor: pointer; white-space: nowrap; }
+.ag-ordenavel:hover { color: var(--primary); }
+.ag-status-ganha    { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.ag-status-perdida  { background: #FDECEA; color: #C62828; border: 1px solid #EF9A9A; }
+.ag-status-aberta   { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+.ag-status-arquivada { background: #F1F5F9; color: #94A3B8; border: 1px dashed #CBD5E1; }
+[data-theme="dark"] .ag-status-ganha   { background: rgba(21,128,61,.15); color: #34D399; border-color: rgba(21,128,61,.28); }
+[data-theme="dark"] .ag-status-perdida { background: rgba(220,38,38,.15); color: #F87171; border-color: rgba(220,38,38,.28); }
+[data-theme="dark"] .ag-status-aberta, [data-theme="dark"] .ag-status-arquivada { background: rgba(255,255,255,.06); color: var(--mut); border-color: var(--line); }
+@media (max-width: 700px) { .ag-grid2, .ag-grid3, .ag-grid4 { grid-template-columns: 1fr; } }
+/* Itens de grid/flex nao encolhem abaixo do conteudo por padrao (min-width: auto): uma tabela
+   larga alargava a coluna, o grafico ao lado se redimensionava e o layout entrava em laco. */
+.ag-aba > *, .ag-grid2 > *, .ag-grid3 > *, .ag-grid4 > *, .ag-aba .card { min-width: 0; }
+.ag-chart canvas { max-width: 100%; }
+
+/* ── Logo no topo: branco no tema escuro, preto no claro ──────── */
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-brand span { font-size: .95rem; font-weight: 400; color: var(--mut); padding-left: 12px; border-left: 1px solid var(--line); }
+.logo-marca { height: 22px; width: auto; display: block; }
+.logo-claro { display: none; }
+[data-theme="light"] .logo-escuro { display: none; }
+[data-theme="light"] .logo-claro { display: block; }

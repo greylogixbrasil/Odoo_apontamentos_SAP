@@ -1,0 +1,5 @@
+Chart.js 4.5.1 (MIT) - https://www.chartjs.org
+Origem: https://registry.npmjs.org/chart.js/-/chart.js-4.5.1.tgz (dist/chart.umd.min.js)
+Integridade do pacote conferida contra o registry do npm:
+sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==
+GitHub Advisory DB (2026-10-22): unico alerta (GHSA-h68q-55jf-x68w) afeta < 2.9.4.

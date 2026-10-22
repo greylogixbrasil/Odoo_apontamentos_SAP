@@ -43,6 +43,10 @@ class Config:
     sap: SapEnvConfig
     hana: HanaConfig
     odoo: OdooConfig
+    # Modulo de tempo nao alocado (src/nao_alocado.py): ActivityType usado no SAP (vazio = ainda
+    # nao definido, nada pode ser enviado) e trava geral do envio (false = so preview).
+    nao_alocado_idsap: str | None = None
+    nao_alocado_envio_habilitado: bool = False
 
 
 def _sap_env_config(env: str) -> SapEnvConfig:
@@ -120,4 +124,6 @@ def load_config(env: str | None = None, excel_path: str | None = None) -> Config
         sap=_sap_env_config(env),
         hana=_hana_config(env),
         odoo=_odoo_config(),
+        nao_alocado_idsap=os.environ.get("NAO_ALOCADO_IDSAP", "").strip() or None,
+        nao_alocado_envio_habilitado=os.environ.get("NAO_ALOCADO_ENVIO_HABILITADO", "false").lower() == "true",
     )
