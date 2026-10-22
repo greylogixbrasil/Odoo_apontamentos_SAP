@@ -222,3 +222,20 @@ def test_aberta_no_sharepoint_que_fechou_no_odoo_usa_o_andamento_do_odoo(repo, t
 
     # data de fechamento da carga de migracao nao conta - segue aberta como no SharePoint
     assert linhas["Fechamento da migracao"]["status"] == "aberta"
+
+
+def test_carga_sql_do_historico_e_idempotente_e_igual_a_importacao(repo, tmp_path):
+    from scripts.gerar_seed_historico_aging import gerar, literal
+    from src.aging.historico import ler_export
+    from src.aging.mapeamento import mapear_sharepoint
+
+    assert literal("D'Agua") == "'D''Agua'" and literal(None) == "NULL"
+    arquivo = tmp_path / "sharepoint.csv"
+    _escrever_csv(arquivo, SHAREPOINT)
+    sql = gerar([mapear_sharepoint(l) for l in ler_export(arquivo)], "teste.csv")
+    with repo.conn.cursor() as cur:
+        cur.execute(sql)
+        cur.execute(sql)
+    assert repo.contar_base("base_origem = 'SharePoint'", []) == 3
+    ganha = repo.consultar_base("codigo = 'C24.0474'", [])[0]
+    assert (ganha["status"], str(ganha["data_fechamento"]), float(ganha["valor"])) == ("ganha", "2024-03-31", 4500.0)

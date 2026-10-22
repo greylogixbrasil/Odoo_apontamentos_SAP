@@ -36,17 +36,23 @@ Usa as mesmas do resto da aplicação, sem nenhuma nova:
 
 ```bash
 # 1. tabelas e view
-docker exec -i sap_import_postgres psql -U sap_import -d sap_import -f - < db/migrations/0003_aging_oportunidades.sql
+docker exec -i sap_import_postgres psql -U sap_import -d sap_import -v ON_ERROR_STOP=1 -f - < db/migrations/0003_aging_oportunidades.sql
 
-# 2. base histórica do SharePoint (export CSV ou Excel da lista; a pasta data/ fica fora do git)
-docker cp data/historico_sharepoint.csv sap_import_app:/tmp/historico_sharepoint.csv
-docker exec sap_import_app python scripts/importar_historico_aging.py /tmp/historico_sharepoint.csv
+# 2. base histórica do SharePoint - já está no repositório, não precisa de arquivo
+docker exec -i sap_import_postgres psql -U sap_import -d sap_import -v ON_ERROR_STOP=1 -f - < db/migrations/0004_aging_historico_sharepoint.sql
 
 # 3. primeira sincronização com o Odoo (completa)
 docker exec sap_import_app python scripts/sync_aging.py --completa
 ```
 
-A importação é idempotente: rodar de novo atualiza as mesmas linhas (chave = coluna `ID` da lista), não duplica.
+**Base histórica:** o SharePoint parou em 2025, então as 5.423 oportunidades ficam versionadas em
+`db/migrations/0004_aging_historico_sharepoint.sql`. A carga é idempotente (upsert pelo `ID` da lista,
+pode aplicar de novo sem duplicar). Num banco criado do zero pelo `docker compose`, ela já roda sozinha
+logo depois do `schema.sql`.
+
+A carga foi gerada por `scripts/gerar_seed_historico_aging.py <export.csv>`, com o mesmo mapeamento da
+importação. Só é preciso gerar de novo se o SharePoint mudar, o que não deve acontecer. A importação
+direta de um arquivo (`scripts/importar_historico_aging.py`) continua disponível para casos pontuais.
 
 ## Sincronização
 
